@@ -1,4 +1,4 @@
-# productcatalogservice
+# productcatalogservice test commit
 
 Run the following command to restore dependencies to `vendor/` directory:
 
