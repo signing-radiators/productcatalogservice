@@ -34,6 +34,24 @@ node {
         anchore bailOnFail: false, forceAnalyze: true, name: 'anchore_images'
     }
 
+    docker.image('openjdk:8-jre-slim').inside("--entrypoint=''") {
+        stage('Sonarqube') {
+            withSonarQubeEnv('sonarqube') {
+                def scannerHome = tool name: 'sonarqube'
+                sh "${scannerHome}/bin/sonar-scanner"
+            }
+        }
+
+        stage("Quality Gate") {
+            timeout(time: 5, unit: 'MINUTES') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
+            }
+        }
+    }
+
     docker.withRegistry(registryUrl, registryCredentialsId) {
         stage('Push') {
             image.push("${deployTag}");
